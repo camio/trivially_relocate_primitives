@@ -1,0 +1,123 @@
+NSA2025MemorySafe:
+  type: report
+  author: National Security Agency (NSA) and Cybersecurity and Infrastructure Security Agency (CISA)
+  title: "CSI: Memory Safe Languages: Reducing Vulnerabilities in Modern Software Development"
+  date: 2025-07-23
+  url: http://media.defense.gov/2025/Jun/23/2003742198/-1/-1/0/CSI_MEMORY_SAFE_LANGUAGES_REDUCING_VULNERABILITIES_IN_MODERN_SOFTWARE_DEVELOPMENT.PDF
+
+crubit:
+  type: repository
+  author: Google
+  title: "Crubit"
+  url: https://github.com/google/crubit
+  date: 2025-07
+
+cxx:
+  type: repository
+  author: David Tolnay
+  title: "CXX - safe introp between Rust and C++"
+  url: https://cxx.rs/
+  date: 2020
+
+zngur:
+  type: repository
+  author: Hamidreza Kalbasi
+  title: "Zngur"
+  url: https://github.com/HKalbasi/zngur
+  date: 2025-07
+
+CppStandardDraft:
+  type: report
+  author: ISO/IEC JTC 1/SC22/WG21
+  title: Working Draft, Programming Languages - C++ (N5014)
+  date: 2025-08-05
+  url: https://www.open-std.org/JTC1/SC22/WG21/docs/papers/2025/n5014.pdf
+
+RustStdPtrRead:
+  type: report
+  author: The Rust Project Developers
+  title: "{Function std::ptr::read in The Rust Standard Library}"
+  version: "1.80.0"
+  url:
+      value: https://doc.rust-lang.org/1.80.0/std/ptr/fn.read.html
+      date: 2025-07-15
+
+FollyRelocation:
+  type: report
+  author: Facebook
+  title: "Object Relocation in Folly Library Documentation"
+  url:
+    value: "https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md#object-relocation"
+    date: "2025-07-15"
+
+BslRelocation:
+  type: report
+  author: Bloomberg
+  title: "`bslmf::IsBitwiseMoveable`: bitwise moveable trait metafunction"
+  year: 2022 # From the provided 2013-2022 range
+  url:
+    value: "https://github.com/bloomberg/bde/blob/962f7aa/groups/bsl/bslmf/bslmf_isbitwisemoveable.h#L8-L48" #
+    date: "2025-07-15"
+
+PointerAuthentication:
+  type: report
+  author:
+    - Oliver Hunt
+    - John McCall
+  title: "A gentle introduction to pointer authentication"
+  number: "D3751R0"
+  date: 2018-06-18
+  url:
+    value: "https://waffles.dog/d3751r0.html"
+    date: "2025-07-15"
+  note: "A C++ standards committee discussion paper."
+
+TrivialRelocatability:
+  type: report
+  author:
+    - Alisdair Meredit
+    - Mungo Gill
+    - Joshua Berne
+    - Corentin Jabot
+    - Pablo Halpern
+    - Lori Hughes
+  title: "Trivial Relocatability for C++26"
+  number: "P2786R13"
+  date: 2025-02-14
+  url:
+    value: "https://wg21.link/p2786r13"
+    date: "2025-07-15"
+  note: "A C++ standards committee discussion paper."
+
+TrivialRelocatabilityAlt:
+  type: report
+  author:
+    - Arthur O'Dwyer
+    - Artur Bać
+    - Daniel Liam Anderson
+    - Enrico Mauro
+    - Jody Hagins
+    - Michael Steffens
+    - Stéphane Janel
+    - Vinnie Falco
+    - Walter E. Brown
+    - Will Wray
+  title: "`std::is_trivially_relocatable`"
+  number: "P1144R13"
+  date: 2025-05-13
+  url:
+    value: "https://wg21.link/p1144R13"
+    date: "2025-05-13"
+  note: "A C++ standards committee discussion paper."
+
+Arm64e:
+  type: conference
+  author:
+    - "John McCall"
+    - "Ahmed Bougacha"
+  title: "arm64e: An ABI for Pointer Authentication"
+  event: "2019 LLVM Developers' Meeting"
+  date: 2019-10-22
+  url:
+    value: "https://llvm.org/devmtg/2019-10/slides/McCall-Bougacha-arm64e.pdf"
+    date: "2025-07-15"
