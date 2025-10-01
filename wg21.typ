@@ -74,6 +74,30 @@
     show heading.where(level: 1): set text(font: "TeX Gyre Heros", fill: rgb("004b71"), size: 12pt)
     show heading: set block(below: 8pt)
     show heading.where(level: 1): set block(below: 12pt)
+    let danger(body) = highlight(
+        fill: rgb("#CC0000"),
+        extent: 2pt,
+        radius: 2pt,
+        {
+          set text(white)
+          strong(body)
+        }
+    )
+    let good(body) = highlight(
+        fill: rgb("#00CC00"),
+        extent: 2pt,
+        radius: 2pt,
+        {
+          set text(white)
+          strong(body)
+        }
+    )
+
+    show raw.where(lang: "Cpp"): r => {
+      show "Undefined behavior": danger
+      show "Okay": good
+      r
+    }
 
     place(make-venue(paper_number, audience), top, scope: "parent", float: true)
     place(
@@ -88,7 +112,7 @@
     show figure.caption: pad.with(x: 10%)
 
     set heading(numbering: "1.")
-    set raw(theme: none)
+    // set raw(theme: none)
     body
   }
 

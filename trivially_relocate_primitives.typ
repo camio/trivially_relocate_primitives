@@ -30,12 +30,69 @@
       important use cases such as `realloc` support, value representation
       serialization, and cross language interoperability. We propose completing
       the trivial relocation function set with the addition of a single function
-      template, `start_lifetime_as`, that addresses these unsupported use cases.
+      template, `std::restart_lifetime`, that addresses these unsupported use cases.
+
+      #table(
+        columns: (1fr,1fr),
+        stroke: none,
+        table.header[*Before*][*After*],
+        table.hline(),
+        [
+        ```Cpp
+        // A trivially relocatable, but not trivially
+        // copyable, type.
+        class Foo { /*...*/ };
+
+        // Create a foo sequence with a single element using
+        // Microsoft's specialized mimalloc allocator.
+        void* foo_sequence_buffer =
+          mi_malloc_aligned(sizeof(Foo), alignof(Foo));
+        Foo* foo_sequence = new (foo_sequence_buffer) Foo();
+
+        // Extend the sequence reusing the same memory if
+        // possible
+        foo_sequence_buffer = mi_realloc_aligned(
+          foo_sequence, sizeof(Foo)*2, alignof(Foo));
+        new (foo_sequence_buffer+sizeof(Foo)) Foo();
+        foo_sequence = (Foo*)foo_sequence_buffer;
+
+
+
+
+        foo_sequence[0].bar(); // Undefined behavior
+        ```
+        ],
+        [
+        ```Cpp
+
+
+
+
+
+
+
+
+
+        // ...same as before...
+
+
+
+
+
+
+
+        // Restart lifetime of relocated elements
+        std::restart_lifetime(foo_sequence[0]);
+
+        foo_sequence[0].bar(); // Okay
+        ```
+        ],
+      )
   ],
 )
 
-// TODO: Add before/after table demonstrating a) undefined behavior with realloc
-// and b) improved Rust interop ergonomics.
+// TODO: Consider another before/after table demonstrating improved Rust interop
+// ergonomics.
 
 = Introduction
 
@@ -74,7 +131,7 @@ void f() {
   Foo* x1 = new (x1_buffer) Foo();
   std::memcpy(&y1_buffer, x1, sizeof(Foo));
   Foo* y1 = reinterpret_cast<Foo*>(y1_buffer);
-  y1->bar(); // UNDEFINED BEHAVIOR
+  y1->bar(); // Undefined behavior
 
   // Relocating using std::trivially_relocate
   // works as expected.
@@ -87,14 +144,25 @@ void f() {
 }
 ```
 
-// TODO: explain why this trade-off was made (Arm64e support makes polymorphic
-// types self-referential)
+One of the motivations for this trade-off is the ARM64e ABI which encodes an
+object's address in its virtual table (vtable) pointer making
+`memcpy`-relocation impossible for polymorphic types on this
+platform#footnote[This is a memory safety vulnerability mitigation. See
+@PointerAuthentication and @Arm64e for details.]. The requirement to call
+`std::trivially_relocate` provides an opportunity for the standard library to
+perform "fix ups" on these vtable pointers.
+
+While `std::trivially_relocate` suffices for many use cases and neatly handles
+the ARM64e platform, other important use-cases remain unaddressed. We propose to
+compliment `std::trivially_relocate` with another function,
+`std::restart_lifetime`, that addresses these use-cases and nicely compliments
+`std::trivially_relocate`.
 
 = Key `std::trivially_relocate` limitations
 
 == `realloc` use case
 
-// TODO: fill in
+// TODO: fill in. See mimalloc. Also https://github.com/rhempel/umm_malloc
 
 == Serialization use case
 
