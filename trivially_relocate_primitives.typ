@@ -339,7 +339,21 @@ x = std::restart_lifetime<Foo>(host_buffer);
 // ... continue using *x
 ```
 
-// TODO: Create some examples that explain how start_lifetime_as would be used and demonstrate how it fixes things.
+= Implementation
+
+The implementation of `std::restart_lifetime` is a noop for most trivially
+relocatable types on most platforms. The exceptions are polymorphic types and
+types with polymorphic data members on the ARM64e architecture. For this
+architecture, the implementation is as follows:
+
+1. If the object is polymorphic, set its vtable pointers and cryptographically
+   sign them according to the object's new address.
+2. Recursively do the same for the object's fields.
+
+Implementation experience is in progress and we do not forsee difficulties in
+either the noop implementation on most platforms or the more sophisticated
+ARM64e implementation#footnote[Note that at the time of this writing, there are
+no implementations of `std::trivially_relocate` for ARM64e.].
 
 = Other considerations
 
@@ -355,10 +369,6 @@ x = std::restart_lifetime<Foo>(host_buffer);
 
 == Should this _replace_ `trivially_relocate` instead of compliment it?
 
-= Implementation
-
-// TODO: Discuss that this is a noop on most platforms. Discuss the ARM64e
-// implementation which directly sets the vtable pointers.
 
 = Alternatives considered
 
