@@ -275,6 +275,11 @@ x = std::restart_lifetime<Foo>(host_buffer);
 
 == Should this _replace_ `trivially_relocate` instead of compliment it?
 
+= Implementation
+
+// TODO: Discuss that this is a noop on most platforms. Discuss the ARM64e
+// implementation which directly sets the vtable pointers.
+
 = Alternatives considered
 
 // TODO: Add the alternative of ripping out trivial relocatability from the standard.
@@ -338,6 +343,10 @@ _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 
 = Acknowledgments
 
-// TODO: Mention Pablo Halpern and others who contributed to the conversation.
+We want to gatefully acknowledge Pablo Halpern for suggesting an ARM64e
+implementation that doesn't require an `origin` pointer, greatly simplifying the
+interface. We also want to acknowledge Oliver Hunt for his review from an ARM64e
+security perspective, Jens Maurer for wording assitence, and the P2786 authors
+for valuable feedback.
 
 #bibliography("references.yml", style: "ieee")
