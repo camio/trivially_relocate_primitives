@@ -350,25 +350,61 @@ architecture, the implementation is as follows:
    sign them according to the object's new address.
 2. Recursively do the same for the object's fields.
 
-Implementation experience is in progress and we do not forsee difficulties in
-either the noop implementation on most platforms or the more sophisticated
+Implementation experience is in progress but we do not forsee difficulties with
+neither the noop implementation on most platforms nor the more sophisticated
 ARM64e implementation#footnote[Note that at the time of this writing, there are
-no implementations of `std::trivially_relocate` for ARM64e.].
+no implementations of `std::trivially_relocate` for ARM64e. See
+https://github.com/llvm/llvm-project/pull/144420 for a work in progress].
 
 = Other considerations
 
 // TODO: Fill this section. Review email thread to identify other discussions on this
 
-== Will this cause security problems?
+== Will this undermine ARM64e security guarantees?
 
-== Why is this being brought up now?
+Prior drafts of this proposal suggested implementations that indescriminately
+sign existing vtable pointers without apriori verifing their validity. This
+resulted in a Return-Oriented Programming (ROP) Gadget exploitable by hackers
+using buffer overruns.
+
+The current proposal avoids this attack by overwriting the vtable pointers to
+their correct values, thus eliminating the possibility that an attacker could
+set them to arbitrary memory locations.
+
+== Why is this being brought up now (and not earlier)?
+
+Although trivial relocatability has been discussed for many years, issues
+related to ARM64e were brought forward only recently#footnote[Their first
+mention was in May of 2005 with @TrivialRelocatabilityAlt]. It took us the time
+since then to understand the issues and formulate a suitable solution.
 
 == Is this a bug fix or a feature?
 
+An important aspect of the trivial relocatability's feature design is its basis
+operations. The basis operations provided in the C++26 working draft did not
+satisfy important use cases and that was discovered only recently. Consequently,
+we believe our contribution is a bug fix as the intention is ship a _complete_
+trivial relocatability solution in C++26.
+
 == Is this critical for C++26?
+
+Whether or not this feature is considered a bug fix, we feel it is critical this
+functionaly be shipped in C++26. The ability to call existing C++ code
+ergonomically from Rust is a critical part of many major corporation's memory
+safety roadmaps. Delaying this functionality by three years may force
+undesirable choices like depending on non-portable undefined behavior for
+interop or strong push to rewrite existing C++ code that works just fine. This
+is a lose-lose situation.
 
 == Should this _replace_ `trivially_relocate` instead of compliment it?
 
+It could be argued that because `std::trivially_relocate` can be implemented in
+terms of `std::restart_lifetime` and `std::relocate` covers the common use-cases,
+`std::trivially_relocate` needn't be included in the standard library.
+
+We disagree with this assertion. `std::trivially_relocate` has legimite use
+cases, one being a replacement for similar operations provided by existing
+library relocation solutions.
 
 = Alternatives considered
 
