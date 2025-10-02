@@ -190,11 +190,12 @@ sufficient library primitives for _trivially relocatable_ types.
 == Specialized `memcpy` use case
 
 A tuned memory copy operation can produce a 10% speedup over
-`std::memcpy`@FastMemCpy and hetrogenious memory systems require an
-alternative#footnote[CUDA's `cudaMemcpy` is a notable example@CudaMemCpy].
-`std::trivially_relocate`'s coupling of the physical moving of an object with
-restarting its lifetime makes it is impossible to portably take advantage of
-these mechanisms with trivially reloctable types.
+`std::memcpy` and hetrogenious memory systems require an
+alternative#footnote[See "Going faster than memcpy"@FastMemCpy and CUDA's
+`cudaMemcpy`@CudaMemCpy for some notable examples.]. `std::trivially_relocate`'s
+coupling of the physical moving of an object with restarting its lifetime makes
+it is impossible to portably take advantage of these mechanisms with trivially
+reloctable types.
 
 == Rust-interop use case
 
