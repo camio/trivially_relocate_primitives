@@ -121,3 +121,27 @@ Arm64e:
   url:
     value: "https://llvm.org/devmtg/2019-10/slides/McCall-Bougacha-arm64e.pdf"
     date: "2025-07-15"
+
+InMemoryDatabase:
+  type: web
+  title: "In-memory database"
+  author: "Wikipedia contributors"
+  website: "Wikipedia, The Free Encyclopedia"
+  url: "https://en.wikipedia.org/wiki/In-memory_database"
+  accessed: "2025-10-02"
+
+FastMemCpy:
+  type: web
+  title: "Going faster than memcpy"
+  author: "Dheeraj Rajaram Reddy"
+  website: "Squadrick"
+  url: "https://squadrick.dev/journal/going-faster-than-memcpy"
+  accessed: "2025-10-02"
+
+CudaMemCpy:
+  type: web
+  title: "`cudaMemcpy`"
+  author: "NVidia"
+  website: "NVidia CUDA Library Documentation"
+  url: "https://developer.download.nvidia.com/compute/DevZone/docs/html/C/doc/html/group__CUDART__MEMORY_g48efa06b81cc031b2aa6fdc2e9930741.html"
+  accessed: "2025-10-02"

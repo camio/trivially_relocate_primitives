@@ -170,21 +170,31 @@ umm_malloc, and tcmalloc for some examples.
 in-place or moves its contents to a new, larger allocation, freeing the original
 block in the process.
 
-`realloc` can be an important performance optimization for high-performance,
-low-level code that dynamically resizes arrays. By taking advantage of the
-allocation library's knowledge of available space after the the originally
-allocated block, expensive copy operations and fragmentation can be avoided.
+Reallocation serves as an important performance optimization for
+high-performance, low-level code that dynamically resizes arrays. By taking
+advantage of the allocation library's knowledge of available space after the
+originally allocated block, expensive copy operations and fragmentation can be
+avoided.
 
-
-// TODO: fill in. See mimalloc. Also https://github.com/rhempel/umm_malloc
+However, because these reallocation functions potentially `memcpy`-relocate
+objects, they may only portably be used with _trivially copyable_ types and
+`std::trivially_relocate` will not help.
 
 == Serialization use case
 
-// TODO: fill in
+In-memory databases@InMemoryDatabase and tiered caching systems frequently
+relocate data structures from memory to disk and back again. Unfortunately, this
+operation is only possible for _trivially copyable_ types due to the lack of
+sufficient library primitives for _trivially relocatable_ types.
 
 == Specialized `memcpy` use case
 
-// TODO: fill in
+A tuned memory copy operation can produce a 10% speedup over
+`std::memcpy`@FastMemCpy and hetrogenious memory systems require an
+alternative#footnote[CUDA's `cudaMemcpy` is a notable example@CudaMemCpy].
+`std::trivially_relocate`'s coupling of the physical moving of an object with
+restarting its lifetime makes it is impossible to portably take advantage of
+these mechanisms with trivially reloctable types.
 
 == Rust-interop use case
 
