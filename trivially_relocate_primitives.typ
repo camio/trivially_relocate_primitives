@@ -199,7 +199,87 @@ reloctable types.
 
 == Rust-interop use case
 
-// TODO: Jon: fill in
+One of the major challenges for high-performance interop is language differences in how memory for object storage is handled. In order for both Rust and C++ to use the same memory for an object that either language can interact with, we must account for the differing models of ownership and relocation. While current practice tends to use indirection so that the underlying storage is opaque across the language boundary, this has a cost both in performance and ergonomics.
+
+Moves in C++ are non-destructive, whereas Rust's ownership model is based on destructive moves and it is a compile-time error to refer to a moved-from location. This facilitates Rust's value-oriented semantics where all assignments (including parameters and return values) transfer ownership#footnote[Rust can also use references for "borrows", which provide either shared immutable access or exclusive mutable access to a value with a compiler-checked lifetime]. This is a fundamental piece of the memory-safe model of default Rust. To facilitate efficient moves, Rust defines their semantics as a bitwise copy#footnote[See https://doc.rust-lang.org/stable/std/marker/trait.Copy.html#whats-the-difference-between-copy-and-clone and https://doc.rust-lang.org/stable/std/ptr/fn.read.html#ownership-of-the-returned-value]. In other words, all Rust objects are _trivially copyable_ in the C++ sense. The fact that Rust objects cannot be self-referential#footnote[Raw, unsafe pointers and `Pin`ned data are two ways Rust can express self-referential types] facilitates this. Rust has no analog to a C++ move constructor, meaning there is no opportunity for additional code that may be added to `trivially_relocate` in C++ to run following a Rust move. Without the addition of `std::restart_lifetime`, only _trivially copyable_ C++ types could be passed to Rust by value.
+
+If we disallow C++ objects to live on the Rust stack they either need to be allocated on the heap, which is a significant performance penalty, or be pinned#footnote[See https://doc.rust-lang.org/stable/std/pin/index.html], which has a significant ergonomics penalty. However, since `std::trivially_relocate` can be decomposed into a bitwise copy followed by `std::restart_lifetime`, and it's only necessary to make sure that the latter occurs before accessing the potentially authenticated C++ vtable pointers, there is an opportunity to lazily perform the fixup on the C++ side. For example, Say we have a polymorphic class hierarchy implemented in C++
+
+```Cpp
+class Shape {
+public:
+  virtual float area() const = 0;
+  virtual ~Shape() = default;
+};
+
+class Circle final : public Shape {
+public:
+  Circle(float radius);
+  float area() const override;
+private:
+  float m_area;
+};
+```
+
+We'd like to interact with this API idiomatically within Rust:
+
+```Rust
+let a = Circle::new(1.0);
+let b = Circle::new(2.0);
+a = b;
+println("a's area: {}", a.area());
+```
+
+To do so, we first observe that `Shape` and `Circle` are trivially relocatable and replaceable types. We denote the alignment of Circle as `CIRCLE_ALIGNMENT` and its size as `CIRCLE_SIZE`. Now we can define the Rust-side `Circle` type:
+
+```Rust
+#[repr(C)]
+#[repr(align(CIRCLE_ALIGNMENT))]
+struct Circle {
+    data: Cell<[MaybeUninit<u8>; CIRCLE_SIZE]>,
+}
+```
+
+where `data` holds the bit representation of the object#footnote[See https://doc.rust-lang.org/stable/std/cell/struct.Cell.html, https://doc.rust-lang.org/stable/std/mem/union.MaybeUninit.html]. Let's now turn to `Circle`'s methods. Their implementations are essentially boilerplate that delegates to corresponding C functions prefixed with `c_`:
+
+```Rust
+impl Circle {
+    fn new(radius: f32) -> Circle {
+        let mut c = MaybeUninit::uninit();
+        unsafe { c_create(
+            c.as_mut_ptr() as *mut c_void,
+            &radius as *const f32
+                    as *mut c_void)};
+        unsafe { c.assume_init() }
+    }
+    fn area(&self) -> f32 {
+        let mut result = MaybeUninit::uninit();
+        unsafe { c_area(
+            result.as_mut_ptr() as *mut c_void,
+            self as *const Circle
+                 as *mut c_void)};
+        unsafe { result.assume_init() }
+    }
+}
+```
+
+These C functions are implemented as follows:
+
+```Cpp
+void c_create(void* result, void* radius) {
+    Circle *data = new (result)
+        Circle(*static_cast<float*>(radius));
+    *static_cast<Circle*>(result) = data;
+}
+
+void c_area(void* result, void* circle) {
+    Circle *data = static_cast<Circle*>(circle);
+    std::restart_lifetime(*data);
+    *static_cast<float*>(result) = data->area();
+}
+```
+
+With the addition of such easily generated wrapper code, efficient and ergnomic access from Rust can be achieved. And on platforms where `std::restart_lifetime` is a no-op, there is essentially no performance penalty for the portable implementation.
 
 = `restart_lifetime`
 
