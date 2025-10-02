@@ -158,7 +158,7 @@ compliment `std::trivially_relocate` with another function,
 `std::restart_lifetime`, that addresses these use-cases and nicely compliments
 `std::trivially_relocate`.
 
-= Key `std::trivially_relocate` limitations
+= Key `std::trivially_relocate` limitations <sec-usecases>
 
 == `realloc` use case
 
@@ -203,6 +203,62 @@ reloctable types.
 
 = `restart_lifetime`
 
+We propose a `restart_lifetime` function that fits within the
+`start_lifetime_as` series of functions. It allows us to separate the "memory
+copying" aspect of relocation from restarting the object's lifetime at the new
+memory address.
+
+Here is an implementation of `std::trivially_relocate` using `restart_lifetime`
+as a lower-level primitive.
+
+```Cpp
+template<class T>
+requires /* ... */
+T* trivially_relocate(T* first, T* last, T* result)
+{
+  std::memcpy( result,
+               first,
+               (last-first)*sizeof(T));
+  for(size_t i = 0; i < (last-first); ++i)
+    std::restart_lifetime(result[i]);
+}
+```
+
+This separation of concerns enables developers to copy an object's value representation
+to a new location by any means and then use it from the new location after a
+call to `std::restart_lifetime`. This enables all the usecases highlighted in
+@sec-usecases.
+
+Here is an example of using `std::restart_lifetime` to roundtrip a `Foo` object
+from main memory to GPU memory.
+
+```Cpp
+void * host_buffer = /*...*/
+void * device_buffer = /*...*/
+
+// Create a `Foo` object in host memory
+Foo* x = new (host_buffer)[sizeof(Foo)];
+
+// Move it to CUDA memory
+cudaMemcpy( device_buffer,
+            host_buffer,
+            sizeof(Foo),
+            cudaMemcpyHostToDevice );
+
+// ... reuse host_buffer for other purposes
+
+// Move it back to host memory
+cudaMemcpy( host_buffer,
+            device_buffer,
+            sizeof(Foo),
+            cudaMemcpyDevicetoHost );
+
+// Restart the object's lifetime on the host
+x = std::restart_lifetime<Foo>(host_buffer);
+
+// ... continue using *x
+```
+
 // TODO: Create some examples that explain how start_lifetime_as would be used and demonstrate how it fixes things.
 
 = Other considerations
@@ -216,6 +272,8 @@ reloctable types.
 == Is this a bug fix or a feature?
 
 == Is this critical for C++26?
+
+== Should this _replace_ `trivially_relocate` instead of compliment it?
 
 = Alternatives considered
 
@@ -251,7 +309,28 @@ _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 
 = Wording
 
-// TODO: Create start_lifetime_as wording
+#wg21.standardese[
+```
+template<class T>
+T* restart_lifetime(void* p) noexcept;
+```
+
+_Mandates_: `is_trivially_relocatable_v<T> && !is_const_v<T>` is `true`.
+
+_Preconditions_:
+- [`p`, `(char*)p + sizeof(T)`) denotes a region of allocated storage that
+  is a subset of the region of storage reachable through [basic.compound] `p`
+  and suitably aligned for the type `T`.
+- The contents of [`p`, `(char*)p + sizeof(T)`) is the value representation of
+  an object _a_ that was stored at another address.
+
+_Effects_: Implicitly creates an object _b_ within the denoted region of type
+`T` whose address is `p`, whose lifetime has begun, and whose object
+representation is the same as that of _a_. If _a_ was still within its lifetime,
+its lifetime is ended.
+
+_Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
+]
 
 = Conclusion
 
