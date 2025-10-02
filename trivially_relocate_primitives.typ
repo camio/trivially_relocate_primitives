@@ -162,17 +162,35 @@ compliment `std::trivially_relocate` with another function,
 
 == `realloc` use case
 
+Allocation libraries often feature a reallocation function (such as C's `realloc`)
+that attempts to resize a given memory block#footnote[See mimalloc, jemalloc,
+umm_malloc, and tcmalloc for some examples.
+// TODO: Add references to these
+]. It either extends the block
+in-place or moves its contents to a new, larger allocation, freeing the original
+block in the process.
+
+`realloc` can be an important performance optimization for high-performance,
+low-level code that dynamically resizes arrays. By taking advantage of the
+allocation library's knowledge of available space after the the originally
+allocated block, expensive copy operations and fragmentation can be avoided.
+
+
 // TODO: fill in. See mimalloc. Also https://github.com/rhempel/umm_malloc
 
 == Serialization use case
 
 // TODO: fill in
 
-== Rust-interop use case
+== Specialized `memcpy` use case
 
 // TODO: fill in
 
-= `start_lifetime_as`
+== Rust-interop use case
+
+// TODO: Jon: fill in
+
+= `restart_lifetime`
 
 // TODO: Create some examples that explain how start_lifetime_as would be used and demonstrate how it fixes things.
 

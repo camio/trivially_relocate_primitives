@@ -77,6 +77,7 @@
     let bad(body) = highlight(
         fill: rgb("#CC0000"),
         extent: 2pt,
+        top-edge: 8pt,
         radius: 2pt,
         {
           set text(white)
@@ -86,6 +87,7 @@
     let good(body) = highlight(
         fill: rgb("#00CC00"),
         extent: 2pt,
+        top-edge: 8pt,
         radius: 2pt,
         {
           set text(white)
@@ -98,6 +100,9 @@
       show "Okay": good
       r
     }
+
+    // Don't line break in the middle of "C++" in prose
+    show "C++": box("C++")
 
     place(make-venue(paper_number, audience), top, scope: "parent", float: true)
     place(
