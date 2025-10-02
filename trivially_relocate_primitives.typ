@@ -184,6 +184,8 @@ compliment `std::trivially_relocate` with another function,
 
 == Why is this being brought up now?
 
+== Is this a bug fix or a feature?
+
 == Is this critical for C++26?
 
 = Alternatives considered

@@ -74,7 +74,7 @@
     show heading.where(level: 1): set text(font: "TeX Gyre Heros", fill: rgb("004b71"), size: 12pt)
     show heading: set block(below: 8pt)
     show heading.where(level: 1): set block(below: 12pt)
-    let danger(body) = highlight(
+    let bad(body) = highlight(
         fill: rgb("#CC0000"),
         extent: 2pt,
         radius: 2pt,
@@ -94,7 +94,7 @@
     )
 
     show raw.where(lang: "Cpp"): r => {
-      show "Undefined behavior": danger
+      show "Undefined behavior": bad
       show "Okay": good
       r
     }
