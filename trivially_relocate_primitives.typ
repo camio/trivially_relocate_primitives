@@ -448,10 +448,15 @@ _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 
 = Wording
 
+Add to end of [obj.lifetime].
+
 #wg21.standardese[
 ```
 template<class T>
 T* restart_lifetime(void* p) noexcept;
+template<class T>
+volatile T* restart_lifetime(volatile void* p)
+                                     noexcept;
 ```
 
 _Mandates_: `is_trivially_relocatable_v<T> && !is_const_v<T>` is `true`.
