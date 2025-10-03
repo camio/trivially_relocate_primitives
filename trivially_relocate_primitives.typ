@@ -267,9 +267,7 @@ These C functions are implemented as follows:
 
 ```Cpp
 void c_create(void* result, void* radius) {
-    Circle *data = new (result)
-        Circle(*static_cast<float*>(radius));
-    *static_cast<Circle*>(result) = data;
+    Circle *data = new (result) Circle(*static_cast<float*>(radius));
 }
 
 void c_area(void* result, void* circle) {
