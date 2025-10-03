@@ -3,7 +3,7 @@
 #show: wg21.template.with(
   paper_number: "DXXXXR0",
   audience: "LEWG",
-  title: [Tweak trivial relocation library primitives \[DRAFT\] ],
+  title: [A Lifetime-Management Primitive for Trivially Relocatable Types \[DRAFT\] ],
   authors: (
     (
       name: "David Sankel",
@@ -15,6 +15,11 @@
       institution: "Rust Foundation",
       mail: "jonbauman@rustfoundation.org",
     ),
+    (
+      name: "Pablo Halpern",
+      institution: "Halpern Wight Software",
+      mail: "phalpern@halpernwightsoftware.com",
+    ),
   ),
   date: (
     year: 2025,
@@ -24,13 +29,18 @@
   abstract: [
       "Trivial Relocatability For C++ 26"@TrivialRelocatability introduced
       mechanisms for the identification and tagging of types whose objects can
-      be "trivially" relocated from one memory address to another. It also
-      included some standard library functions that perform this relocation.
-      Useful as they are, these standard library functions are insufficient for
-      important use cases such as `realloc` support, value representation
-      serialization, and cross language interoperability. We propose completing
-      the trivial relocation function set with the addition of a single function
-      template, `std::restart_lifetime`, that addresses these unsupported use cases.
+      be "trivially" relocated from one memory address to another, as well as
+      standard library functions that perform this relocation. A call to
+      `std::trivial_relocate` performs a logically atomic operation whereby and
+      object's representation is copied, its lifetime is ended at the original
+      location, and its lifetime is restarted at the target location, without
+      invoking any constructors or destructors. Useful as they are, these
+      standard library functions are insufficient for important use cases where
+      the three component operations must be separated by intervening code, such
+      as `realloc` support, value representation serialization, and cross
+      language interoperability. We propose completing the trivial relocation
+      function set with the addition of a single function template,
+      `std::restart_lifetime`, that addresses these unsupported use cases.
 
       #table(
         columns: (1fr,1fr),
@@ -144,13 +154,12 @@ void f() {
 }
 ```
 
-One of the motivations for this trade-off is the ARM64e ABI which encodes an
-object's address in its virtual table (vtable) pointer making
-`memcpy`-relocation impossible for polymorphic types on this
-platform#footnote[This is a memory safety vulnerability mitigation. See
-@PointerAuthentication and @Arm64e for details.]. The requirement to call
-`std::trivially_relocate` provides an opportunity for the standard library to
-perform "fix ups" on these vtable pointers.
+This design enables the ARM64e ABI which encodes an object's address in its
+virtual table (vtable) pointer making `memcpy`-relocation impossible for
+polymorphic types on this platform#footnote[This is a memory safety
+vulnerability mitigation. See @PointerAuthentication and @Arm64e for details.].
+The requirement to call `std::trivially_relocate` provides an opportunity for
+the standard library to perform "fix ups" on these vtable pointers.
 
 While `std::trivially_relocate` suffices for many use cases and neatly handles
 the ARM64e platform, other important use-cases remain unaddressed. We propose to
@@ -382,18 +391,18 @@ since then to understand the issues and formulate a suitable solution.
 An important aspect of the trivial relocatability's feature design is its basis
 operations. The basis operations provided in the C++26 working draft did not
 satisfy important use cases and that was discovered only recently. Consequently,
-we believe our contribution is a bug fix as the intention is to ship a _complete_
-trivial relocatability solution in C++26.
+it can be argued that this contribution is a bug fix as the intention is to ship
+a _complete_ trivial relocatability solution in C++26.
 
 == Is this critical for C++26?
 
-Whether or not this feature is considered a bug fix, we feel it is critical this
-functionaly be shipped in C++26. The ability to call existing C++ code
-ergonomically from Rust is a critical part of many major corporation's memory
-safety roadmaps. Delaying this functionality by three years may force
-undesirable choices like depending on non-portable undefined behavior for
-interop or a strong push to rewrite existing C++ code that works just fine. This
-is a lose-lose situation.
+Whether or not this feature is considered a bug fix, it can be argued that it is
+critical this functionality be shipped in C++26 due to the urgency of memory
+safety initiatives. The ability to call existing C++ code ergonomically from
+Rust is a critical part of many major corporate memory safety roadmaps.
+Delaying this functionality by three years may force undesirable choices like
+depending on non-portable undefined behavior for interop or a strong push to
+rewrite existing C++ code that works just fine.
 
 == Should this _replace_ `trivially_relocate` instead of compliment it?
 
