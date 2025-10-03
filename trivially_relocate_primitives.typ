@@ -382,7 +382,7 @@ since then to understand the issues and formulate a suitable solution.
 An important aspect of the trivial relocatability's feature design is its basis
 operations. The basis operations provided in the C++26 working draft did not
 satisfy important use cases and that was discovered only recently. Consequently,
-we believe our contribution is a bug fix as the intention is ship a _complete_
+we believe our contribution is a bug fix as the intention is to ship a _complete_
 trivial relocatability solution in C++26.
 
 == Is this critical for C++26?
@@ -392,13 +392,13 @@ functionaly be shipped in C++26. The ability to call existing C++ code
 ergonomically from Rust is a critical part of many major corporation's memory
 safety roadmaps. Delaying this functionality by three years may force
 undesirable choices like depending on non-portable undefined behavior for
-interop or strong push to rewrite existing C++ code that works just fine. This
+interop or a strong push to rewrite existing C++ code that works just fine. This
 is a lose-lose situation.
 
 == Should this _replace_ `trivially_relocate` instead of compliment it?
 
-It could be argued that because `std::trivially_relocate` can be implemented in
-terms of `std::restart_lifetime` and `std::relocate` covers the common use-cases,
+It has been argued that because `std::trivially_relocate` can be implemented in
+terms of `std::restart_lifetime`, and `std::relocate` covers the common use-cases,
 `std::trivially_relocate` needn't be included in the standard library.
 
 We disagree with this assertion. `std::trivially_relocate` has legimite use
@@ -471,7 +471,7 @@ _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 We want to gatefully acknowledge Pablo Halpern for suggesting an ARM64e
 implementation that doesn't require an `origin` pointer, greatly simplifying the
 interface. We also want to acknowledge Oliver Hunt for his review from an ARM64e
-security perspective, Jens Maurer for wording assitence, and the P2786 authors
+security perspective, Jens Maurer for wording assistance, and the P2786 authors
 for valuable feedback.
 
 #bibliography("references.yml", style: "ieee")
