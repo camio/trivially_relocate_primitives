@@ -473,14 +473,22 @@ _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 
 = Conclusion
 
-// TODO: Add conclusion
+The `std::trivially_relocate` primitive, while valuable, is insufficient for a
+number of important, real-world use cases involving `realloc`-driven
+optimizations, serialization, and cross-language interoperability. We propose a
+minimal, orthogonal primitive, `std::restart_lifetime`, which decomposes
+relocation into its constituent parts: a byte-wise copy and a subsequent
+lifetime restart. This separation of concerns directly enables the
+aforementioned use cases. Crucially, it provides a portable and ergonomic
+pathway for interoperability with other languages, such as Rust, supporting
+critical industry-wide memory safety initiatives. Given its importance as a
+completion of the trivial relocatability feature set and its low implementation
+cost, we believe this proposal should be considered for C++26.
 
 = Acknowledgments
 
-We want to gatefully acknowledge Pablo Halpern for suggesting an ARM64e
-implementation that doesn't require an `origin` pointer, greatly simplifying the
-interface. We also want to acknowledge Oliver Hunt for his review from an ARM64e
-security perspective, Jens Maurer for wording assistance, and the P2786 authors
-for valuable feedback.
+We want to acknowledge Oliver Hunt for his review from an ARM64e security
+perspective, Jens Maurer for wording assistance, and the P2786 authors for
+valuable feedback.
 
 #bibliography("references.yml", style: "ieee")
