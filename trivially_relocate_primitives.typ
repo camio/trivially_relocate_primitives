@@ -375,7 +375,7 @@ set them to arbitrary memory locations.
 
 Although trivial relocatability has been discussed for many years, issues
 related to ARM64e were brought forward only recently#footnote[Their first
-mention was in May of 2005 with @TrivialRelocatabilityAlt]. It took us the time
+mention was in May of 2025 with @TrivialRelocatabilityAlt]. It took us the time
 since then to understand the issues and formulate a suitable solution.
 
 == Is this a bug fix or a feature?
