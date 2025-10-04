@@ -31,14 +31,14 @@
       mechanisms for the identification and tagging of types whose objects can
       be "trivially" relocated from one memory address to another, as well as
       standard library functions that perform this relocation. A call to
-      `std::trivial_relocate` performs a logically atomic operation whereby and
+      `std::trivial_relocate` performs a logically atomic operation whereby an
       object's representation is copied, its lifetime is ended at the original
       location, and its lifetime is restarted at the target location, without
       invoking any constructors or destructors. Useful as they are, these
       standard library functions are insufficient for important use cases where
       the three component operations must be separated by intervening code, such
       as `realloc` support, value representation serialization, and cross
-      language interoperability. We propose completing the trivial relocation
+      language interoperability. We propose to complete the trivial relocation
       function set with the addition of a single function template,
       `std::restart_lifetime`, that addresses these unsupported use cases.
 
@@ -103,7 +103,7 @@
 
 = Introduction
 
-It is a common-but-unspecified property that for many types, an object can be
+It is a common yet unspecified property that for many types, an object can be
 relocated with a `memcpy` of its underlying bytes. Although the standard
 guarantees this only for the small number of _trivially copyable_ types,
 virtually all C++ compilers support `memcpy`-relocation of non-self-referential
@@ -112,8 +112,8 @@ optimizations and a number of libraries have emerged that attempt to surface
 this functionality in a generic way.
 #footnote[See @TrivialRelocatability and @TrivialRelocatabilityAlt for a survey of such libraries.]
 
-After much debate, a form of this functionality landed in the working
-draft@CppStandardDraft with "Trivial Relocatability For C++
+After much debate, the committee added a form of this functionality to the
+working draft@CppStandardDraft with "Trivial Relocatability For C++
 26"@TrivialRelocatability#footnote[See @TrivialRelocatabilityAlt for a notable
 design alternative that was considered, but ultimately rejected.]. An important
 trade-off in this design is that qualifying types may be "trivially" relocated
@@ -156,13 +156,12 @@ virtual table (vtable) pointer making `memcpy`-relocation impossible for
 polymorphic types on this platform#footnote[This is a memory safety
 vulnerability mitigation. See @PointerAuthentication and @Arm64e for details.].
 The requirement to call `std::trivially_relocate` provides an opportunity for
-the standard library to perform "fix ups" on these vtable pointers.
+the standard library to perform "fixups" on these vtable pointers.
 
 While `std::trivially_relocate` suffices for many use cases and neatly handles
-the ARM64e platform, other important use-cases remain unaddressed. We propose to
-compliment `std::trivially_relocate` with another function,
-`std::restart_lifetime`, that addresses these use-cases and nicely compliments
-`std::trivially_relocate`.
+the ARM64e platform, other important use cases remain unaddressed. We propose to
+complement `std::trivially_relocate` with another function,
+`std::restart_lifetime`, that addresses these use cases.
 
 = Key `std::trivially_relocate` limitations <sec-usecases>
 
@@ -194,21 +193,20 @@ sufficient library primitives for _trivially relocatable_ types.
 
 == Specialized `memcpy` use case
 
-A tuned memory copy operation can produce a 10% speedup over
-`std::memcpy` and hetrogenious memory systems require an
-alternative#footnote[See "Going faster than memcpy"@FastMemCpy and CUDA's
-`cudaMemcpy`@CudaMemCpy for some notable examples.]. `std::trivially_relocate`'s
-coupling of the physical moving of an object with restarting its lifetime makes
-it is impossible to portably take advantage of these mechanisms with trivially
-reloctable types.
+A tuned memory copy operation can produce a 10% speedup over `std::memcpy`, and
+heterogenious memory systems require an alternative#footnote[See "Going faster
+than memcpy"@FastMemCpy and CUDA's `cudaMemcpy`@CudaMemCpy for some notable
+examples.]. `std::trivially_relocate`'s coupling of the physical moving of an
+object with restarting its lifetime makes it is impossible to portably take
+advantage of these mechanisms with trivially relocatable types.
 
 == Rust-interop use case
 
-One of the major challenges for high-performance interop is language differences in how memory for object storage is handled. In order for both Rust and C++ to use the same memory for an object that either language can interact with, we must account for the differing models of ownership and relocation. While current practice tends to use indirection so that the underlying storage is opaque across the language boundary, this has a cost both in performance and ergonomics.
+One of the major challenges for high-performance interop is language differences in how memory for object storage is handled. For Rust and C++ to use the same memory for an object that either language can access, we must account for the differing models of ownership and relocation. While current practice tends to use indirection so that the underlying storage is opaque across the language boundary, this has a cost both in performance and ergonomics.
 
 Moves in C++ are non-destructive, whereas Rust's ownership model is based on destructive moves and it is a compile-time error to refer to a moved-from location. This facilitates Rust's value-oriented semantics where all assignments (including parameters and return values) transfer ownership#footnote[Rust can also use references for "borrows", which provide either shared immutable access or exclusive mutable access to a value with a compiler-checked lifetime]. This is a fundamental piece of the memory-safe model of default Rust. To facilitate efficient moves, Rust defines their semantics as a bitwise copy#footnote[See https://doc.rust-lang.org/stable/std/marker/trait.Copy.html#whats-the-difference-between-copy-and-clone and https://doc.rust-lang.org/stable/std/ptr/fn.read.html#ownership-of-the-returned-value]. In other words, all Rust objects are _trivially copyable_ in the C++ sense. The fact that Rust objects cannot be self-referential#footnote[Raw, unsafe pointers and `Pin`ned data are two ways Rust can express self-referential types] facilitates this. Rust has no analog to a C++ move constructor, meaning there is no opportunity for additional code that may be added to `trivially_relocate` in C++ to run following a Rust move. Without the addition of `std::restart_lifetime`, only _trivially copyable_ C++ types could be passed to Rust by value.
 
-If we disallow C++ objects to live on the Rust stack they either need to be allocated on the heap, which is a significant performance penalty, or be pinned#footnote[See https://doc.rust-lang.org/stable/std/pin/index.html], which has a significant ergonomics penalty. However, since `std::trivially_relocate` can be decomposed into a bitwise copy followed by `std::restart_lifetime`, and it's only necessary to make sure that the latter occurs before accessing the potentially authenticated C++ vtable pointers, there is an opportunity to lazily perform the fixup on the C++ side. For example, Say we have a polymorphic class hierarchy implemented in C++
+If C++ objects are disallowed from living on the Rust stack they must be allocated on the heap, which is a significant performance penalty, or be pinned#footnote[See https://doc.rust-lang.org/stable/std/pin/index.html], which has a significant ergonomics penalty. However, since `std::trivially_relocate` can be decomposed into a bitwise copy followed by `std::restart_lifetime`, and it's only necessary to make sure that the latter occurs before accessing the potentially authenticated C++ vtable pointers, there is an opportunity to lazily perform the fixup on the C++ side. For example, say we have a polymorphic class hierarchy implemented in C++
 
 ```Cpp
 class Shape {
@@ -283,7 +281,7 @@ void c_area(void* result, void* circle) {
 }
 ```
 
-With the addition of such easily generated wrapper code, efficient and ergnomic access from Rust can be achieved. And on platforms where `std::restart_lifetime` is a no-op, there is essentially no performance penalty for the portable implementation.
+With the addition of such easily generated wrapper code, efficient and ergonomic access from Rust can be achieved. And on platforms where `std::restart_lifetime` is a no-op, there is essentially no performance penalty for the portable implementation.
 
 = `restart_lifetime`
 
@@ -345,17 +343,16 @@ x = std::restart_lifetime<Foo>(host_buffer);
 
 = Implementation
 
-The implementation of `std::restart_lifetime` is a noop for most trivially
-relocatable types on most platforms. The exceptions are polymorphic types and
-types with polymorphic data members on the ARM64e architecture. For this
-architecture, the implementation is as follows:
+On most platforms, the implementation of `std::restart_lifetime` is a no-op. The
+exception is ARM64e where polymorphic types and types with polymorphic data
+members require special handling as follows:
 
 1. If the object is polymorphic, set its vtable pointers and cryptographically
    sign them according to the object's new address.
 2. Recursively do the same for the object's fields.
 
-Implementation experience is in progress but we do not forsee difficulties with
-neither the noop implementation on most platforms nor the more sophisticated
+Implementation experience is in progress but we do not foresee difficulties with
+either the no-op implementation on most platforms or the more sophisticated
 ARM64e implementation#footnote[Note that at the time of this writing, there are
 no implementations of `std::trivially_relocate` for ARM64e. See
 https://github.com/llvm/llvm-project/pull/144420 for a work in progress].
@@ -364,8 +361,8 @@ https://github.com/llvm/llvm-project/pull/144420 for a work in progress].
 
 == Will this undermine ARM64e security guarantees?
 
-Prior drafts of this proposal suggested implementations that indescriminately
-sign existing vtable pointers without apriori verifing their validity. This
+Prior drafts of this proposal suggested implementations that indiscriminately
+sign existing vtable pointers without a priori verifying their validity. This
 resulted in a Return-Oriented Programming (ROP) Gadget exploitable by hackers
 using buffer overruns.
 
@@ -393,18 +390,18 @@ a _complete_ trivial relocatability solution in C++26.
 Whether or not this feature is considered a bug fix, it can be argued that it is
 critical this functionality be shipped in C++26 due to the urgency of memory
 safety initiatives. The ability to call existing C++ code ergonomically from
-Rust is a critical part of many major corporate memory safety roadmaps.
+Rust is a critical to the memory safety roadmaps of many major corporations.
 Delaying this functionality by three years may force undesirable choices like
 depending on non-portable undefined behavior for interop or a strong push to
 rewrite existing C++ code that works just fine.
 
-== Should this _replace_ `trivially_relocate` instead of compliment it?
+== Should this _replace_ `trivially_relocate` instead of complement it?
 
-It has been argued that because `std::trivially_relocate` can be implemented in
-terms of `std::restart_lifetime`, and `std::relocate` covers the common use-cases,
-`std::trivially_relocate` needn't be included in the standard library.
+Some have argued that `std::trivially_relocate` is unnecessary in the standard
+library because it can be implemented in terms of `std::restart_lifetime`, while
+`std::relocate` covers the most common use cases.
 
-We disagree with this assertion. `std::trivially_relocate` has legimite use
+We disagree with this assertion. `std::trivially_relocate` has legitimate use
 cases, one being a replacement for similar operations provided by existing
 library relocation solutions.
 
@@ -412,9 +409,9 @@ library relocation solutions.
 
 == `start_lifetime_at` extension
 
-We considered another formulation of `restart_lifetime` that took in the
-original pointer's location in addition to the new location. It's definition is
-below.
+We also considered an alternative formulation of `restart_lifetime` that
+accepted the object's original location in addition to the new location. Its
+definition is provided below.
 
 #wg21.standardese[
 ```
@@ -439,10 +436,10 @@ representation is the same as that of _a_.
 _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 ]
 
-The thought was that on ARM64e the `origin` pointer could be used to validate
+The rationale was that on ARM64e, the `origin` pointer could be used to validate
 the vtable pointers in the new location before re-signing them. This design,
-however, is much more complicated than the alternative and overly-tailored to
-ARM64e.
+however, is significantly more complicated than the proposed alternative and is
+considered overly tailored to ARM64e.
 
 = Wording
 
@@ -490,7 +487,7 @@ cost, we believe this proposal should be considered for C++26.
 
 = Acknowledgments
 
-We want to acknowledge Oliver Hunt for his review from an ARM64e security
+We would like to thank Oliver Hunt for his review from an ARM64e security
 perspective, Jens Maurer for wording assistance, and the P2786 authors for
 valuable feedback.
 
