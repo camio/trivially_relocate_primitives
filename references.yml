@@ -145,3 +145,27 @@ CudaMemCpy:
   website: "NVidia CUDA Library Documentation"
   url: "https://developer.download.nvidia.com/compute/DevZone/docs/html/C/doc/html/group__CUDART__MEMORY_g48efa06b81cc031b2aa6fdc2e9930741.html"
   accessed: "2025-10-02"
+
+Mimalloc:
+  type: web
+  title: "mimalloc"
+  author: "Microsoft"
+  website: "mimalloc GitHub repository"
+  url: "https://github.com/microsoft/mimalloc"
+  accessed: "2025-10-03"
+
+UmmMalloc:
+  type: web
+  title: "umm_malloc"
+  author: "Ralph Hempel"
+  website: "umm_malloc GitHub repository"
+  url: "https://github.com/rhempel/umm_malloc"
+  accessed: "2025-10-03"
+
+TcMalloc:
+  type: web
+  title: "tcmaloc"
+  author: "Google"
+  website: "tcmalloc GitHub repository"
+  url: "https://github.com/google/tcmalloc"
+  accessed: "2025-10-03"

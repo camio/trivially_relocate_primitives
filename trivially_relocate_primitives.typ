@@ -101,9 +101,6 @@
   ],
 )
 
-// TODO: Consider another before/after table demonstrating improved Rust interop
-// ergonomics.
-
 = Introduction
 
 It is a common-but-unspecified property that for many types, an object can be
@@ -172,9 +169,8 @@ compliment `std::trivially_relocate` with another function,
 == `realloc` use case
 
 Allocation libraries often feature a reallocation function (such as C's `realloc`)
-that attempts to resize a given memory block#footnote[See mimalloc, jemalloc,
-umm_malloc, and tcmalloc for some examples.
-// TODO: Add references to these
+that attempts to resize a given memory block#footnote[See mimalloc@Mimalloc,
+umm_malloc@UmmMalloc, and tcmalloc@TcMalloc for some examples.
 ]. It either extends the block
 in-place or moves its contents to a new, larger allocation, freeing the original
 block in the process.
@@ -366,8 +362,6 @@ https://github.com/llvm/llvm-project/pull/144420 for a work in progress].
 
 = Other considerations
 
-// TODO: Fill this section. Review email thread to identify other discussions on this
-
 == Will this undermine ARM64e security guarantees?
 
 Prior drafts of this proposal suggested implementations that indescriminately
@@ -416,12 +410,11 @@ library relocation solutions.
 
 = Alternatives considered
 
-// TODO: Add the alternative of ripping out trivial relocatability from the standard.
-
 == `start_lifetime_at` extension
 
-// TODO: Add prose explaining this and why it was discarded. We can probably get away
-// with showing use cases instead of standardese.
+We considered another formulation of `restart_lifetime` that took in the
+original pointer's location in addition to the new location. It's definition is
+below.
 
 #wg21.standardese[
 ```
@@ -445,6 +438,11 @@ representation is the same as that of _a_.
 
 _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 ]
+
+The thought was that on ARM64e the `origin` pointer could be used to validate
+the vtable pointers in the new location before re-signing them. This design,
+however, is much more complicated than the alternative and overly-tailored to
+ARM64e.
 
 = Wording
 
