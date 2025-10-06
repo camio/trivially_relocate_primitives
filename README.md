@@ -1,4 +1,4 @@
-# Trivially Relocate Primitives
+# A Lifetime-Management Primitive for Trivially Relocatable Types
 
 The latest PDF for this paper is available
 [here](https://camio.github.io/trivially_relocate_primitives/trivially_relocate_primitives.pdf).

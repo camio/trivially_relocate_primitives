@@ -17,7 +17,7 @@
     ),
     (
       name: "Pablo Halpern",
-      institution: "Halpern Wight Software",
+      institution: "Halpern-Wight, Inc.",
       mail: "phalpern@halpernwightsoftware.com",
     ),
   ),
@@ -151,12 +151,13 @@ void f() {
 }
 ```
 
-This design enables the ARM64e ABI which encodes an object's address in its
-virtual table (vtable) pointer making `memcpy`-relocation impossible for
-polymorphic types on this platform#footnote[This is a memory safety
-vulnerability mitigation. See @PointerAuthentication and @Arm64e for details.].
-The requirement to call `std::trivially_relocate` provides an opportunity for
-the standard library to perform "fixups" on these vtable pointers.
+Among other benefits, this type-aware design enables the ARM64e ABI which
+encodes an object's address in its virtual table (vtable) pointer making
+`memcpy`-relocation impossible for polymorphic types on this
+platform#footnote[This is a memory safety vulnerability mitigation. See
+@PointerAuthentication and @Arm64e for details.]. The requirement to call
+`std::trivially_relocate` provides an opportunity for the standard library to
+perform "fixups" on these vtable pointers.
 
 While `std::trivially_relocate` suffices for many use cases and neatly handles
 the ARM64e platform, other important use cases remain unaddressed. We propose to
@@ -188,7 +189,7 @@ objects, they may only portably be used with _trivially copyable_ types and
 
 In-memory databases@InMemoryDatabase and tiered caching systems frequently
 relocate data structures from memory to disk and back again. Unfortunately, this
-operation is only possible for _trivially copyable_ types due to the lack of
+operation is possible only for _trivially copyable_ types due to the lack of
 sufficient library primitives for _trivially relocatable_ types.
 
 == Specialized `memcpy` use case
