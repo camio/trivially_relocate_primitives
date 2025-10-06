@@ -271,13 +271,13 @@ These C functions are implemented as follows:
 
 ```Cpp
 void c_create(void* result, void* radius) {
-    Circle *data = new (result)
-        Circle(*static_cast<float*>(radius));
+    new (result) Circle(
+      *static_cast<float*>(radius));
 }
 
 void c_area(void* result, void* circle) {
-    Circle *data = static_cast<Circle*>(circle);
-    std::restart_lifetime(*data);
+    Circle* data =
+      std::restart_lifetime<Circle>(circle);
     *static_cast<float*>(result) = data->area();
 }
 ```
