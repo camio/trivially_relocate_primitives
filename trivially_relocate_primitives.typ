@@ -408,7 +408,7 @@ library relocation solutions.
 
 = Alternatives considered
 
-== `start_lifetime_at` extension
+== Pass in origin pointer
 
 We also considered an alternative formulation of `restart_lifetime` that
 accepted the object's original location in addition to the new location. Its
@@ -416,9 +416,10 @@ definition is provided below.
 
 #wg21.standardese[
 ```
+// Not proposed
 template<class T>
-T* start_lifetime_at(uintptr_t origin,
-                     void* p) noexcept;
+T* restart_lifetime(uintptr_t origin,
+                    void* p) noexcept;
 ```
 
 _Mandates_: `is_trivially_relocatable_v<T> && !is_const_v<T>` is `true`.
@@ -441,6 +442,40 @@ The rationale was that on ARM64e, the `origin` pointer could be used to validate
 the vtable pointers in the new location before re-signing them. This design,
 however, is significantly more complicated than the proposed alternative and is
 considered overly tailored to ARM64e.
+
+== Extension for inter-process communication
+
+Another alternative we considered was to generalize `restart_lifetime` to
+support reconstituting an object from its value representation across different
+processes. This would involve completely restoring the invisible parts of an
+object (such as vtable pointers) in a new context based solely on its byte
+representation. However, we concluded that this approach is fraught with
+difficulty for several reasons.
+
+First, such a function would be very difficult, if not impossible, for a
+compiler to optimize into a no-op, as it cannot assume that the source and
+destination contexts are identical. Second, C++ currently lacks a mechanism to
+formally describe or mandate a "same layout" guarantee for non-standard-layout
+types across different compiler versions, platforms, or even separate
+compilations of the same program; future reflection capabilities might provide a
+path toward establishing such guarantees, but this is beyond the scope of this
+paper. Finally, describing a mandate for a "valid member state" is problematic.
+The language does not provide a standardized way to describe or check class
+invariants, making it difficult to specify preconditions for a function that
+must reconstitute an object from a potentially untrusted byte stream without
+invoking a constructor.
+
+While a more powerful cross-process variation of `restart_lifetime` could be
+considered in the future, we wanted this to be a minimalist proposal. Our goal
+is to address the immediate and well-understood use cases of in-process
+relocation without venturing into the more complex domain of general-purpose
+serialization.
+
+== Names
+
+Another name we considered is `start_lifetime_at` due to its similarty to the
+`start_lifetime_as` function group. The authors do not have strong preferences
+between `start_lifetime_at` and `restart_lifetime`.
 
 = Wording
 
