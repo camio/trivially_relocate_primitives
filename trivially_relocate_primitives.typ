@@ -81,6 +81,7 @@
       )
   ],
 )
+#pagebreak()
 
 = Introduction
 
@@ -186,9 +187,69 @@ advantage of these mechanisms with trivially relocatable types.
 
 One of the major challenges for high-performance interop is language differences in how memory for object storage is handled. For Rust and C++ to use the same memory for an object that either language can access, we must account for the differing models of ownership and relocation. While current practice tends to use indirection so that the underlying storage is opaque across the language boundary, this has a cost both in performance and ergonomics.
 
-Moves in C++ are non-destructive, whereas Rust's ownership model is based on destructive moves and it is a compile-time error to refer to a moved-from location. This facilitates Rust's value-oriented semantics where all assignments (including parameters and return values) transfer ownership#footnote[Rust can also use references for "borrows", which provide either shared immutable access or exclusive mutable access to a value with a compiler-checked lifetime]. This is a fundamental piece of the memory-safe model of default Rust. To facilitate efficient moves, Rust defines their semantics as a bitwise copy#footnote[See https://doc.rust-lang.org/stable/std/marker/trait.Copy.html#whats-the-difference-between-copy-and-clone and https://doc.rust-lang.org/stable/std/ptr/fn.read.html#ownership-of-the-returned-value]. In other words, all Rust objects are _trivially copyable_ in the C++ sense. The fact that Rust objects cannot be self-referential#footnote[Raw, unsafe pointers and `Pin`ned data are two ways Rust can express self-referential types] facilitates this. Rust has no analog to a C++ move constructor, meaning there is no opportunity for additional code that may be added to `trivially_relocate` in C++ to run following a Rust move. Without the addition of `std::restart_lifetime`, only _trivially copyable_ C++ types could be passed to Rust by value.
+Moves in C++ are non-destructive, whereas Rust's ownership model is based on destructive moves and it is a compile-time error to refer to a moved-from location. This facilitates Rust's value-oriented semantics where all assignments (including parameters and return values) transfer ownership#footnote[Rust can also use references for "borrows", which provide either shared immutable access or exclusive mutable access to a value with a compiler-checked lifetime]. This is a fundamental piece of the memory-safe model of default Rust. To facilitate efficient moves, Rust defines their semantics as a bitwise copy#footnote[See https://doc.rust-lang.org/stable/std/marker/trait.Copy.html#whats-the-difference-between-copy-and-clone and https://doc.rust-lang.org/stable/std/ptr/fn.read.html#ownership-of-the-returned-value]. In other words, all Rust objects are _trivially copyable_ in the C++ sense. The fact that Rust objects cannot be self-referential#footnote[Raw, unsafe pointers and `Pin`ned data are two ways Rust can express self-referential types] facilitates this. Rust has no analog to a C++ move constructor, meaning there is no opportunity for additional code that may be added to `trivially_relocate` in C++ to run following a Rust move. Without the addition of `std::restart_lifetime`, only _trivially copyable_ C++ types could be passed to Rust by value. Other types must be allocated on the heap, which is a significant performance penalty, or be pinned#footnote[See https://doc.rust-lang.org/stable/std/pin/index.html], which has a significant ergonomics penalty.
 
-If C++ objects are disallowed from living on the Rust stack they must be allocated on the heap, which is a significant performance penalty, or be pinned#footnote[See https://doc.rust-lang.org/stable/std/pin/index.html], which has a significant ergonomics penalty. However, since `std::trivially_relocate` can be decomposed into a bitwise copy followed by `std::restart_lifetime`, and it's only necessary to make sure that the latter occurs before accessing the potentially authenticated C++ vtable pointers, there is an opportunity to lazily perform the fixup on the C++ side. For example, say we have a polymorphic class hierarchy implemented in C++
+= `restart_lifetime`
+
+We propose a `restart_lifetime` function that fits within the
+`start_lifetime_as` series of functions. It allows us to separate the "memory
+copying" aspect of relocation from restarting the object's lifetime at the new
+memory address.
+
+Here is an implementation of `std::trivially_relocate` using `restart_lifetime`
+as a lower-level primitive.
+
+```Cpp
+template<class T>
+requires /* ... */
+T* trivially_relocate(T* first, T* last, T* result)
+{
+  std::memcpy( result,
+               first,
+               (last-first)*sizeof(T));
+  for(size_t i = 0; i < (last-first); ++i)
+    std::restart_lifetime(result[i]);
+}
+```
+
+This separation of concerns allows developers to copy an object's value representation
+to a new location by any means and then use it from the new location after a
+call to `std::restart_lifetime`. This enables all the usecases highlighted in
+@sec-usecases.
+
+Here is an example of using `std::restart_lifetime` to roundtrip a `Foo` object
+from main memory to GPU memory.
+
+```Cpp
+void * host_buffer = /*...*/
+void * device_buffer = /*...*/
+
+// Create a `Foo` object in host memory
+Foo* x = new (host_buffer)[sizeof(Foo)];
+
+// Move it to CUDA memory
+cudaMemcpy( device_buffer,
+            host_buffer,
+            sizeof(Foo),
+            cudaMemcpyHostToDevice );
+
+// ... reuse host_buffer for other purposes
+
+// Move it back to host memory
+cudaMemcpy( host_buffer,
+            device_buffer,
+            sizeof(Foo),
+            cudaMemcpyDevicetoHost );
+
+// Restart the object's lifetime on the host
+x = std::restart_lifetime<Foo>(host_buffer);
+
+// ... continue using *x
+```
+
+== Addressing Rust-interop
+
+Since `std::trivially_relocate` can be decomposed into a bitwise copy followed by `std::restart_lifetime`, and it's only necessary to make sure that the latter occurs before accessing the potentially authenticated C++ vtable pointers, there is an opportunity to lazily perform fixups on the C++ side. For example, say we have a polymorphic class hierarchy implemented in C++:
 
 ```Cpp
 class Shape {
@@ -263,65 +324,8 @@ void c_area(void* result, void* circle) {
 }
 ```
 
-With the addition of such easily generated wrapper code, efficient and ergonomic access from Rust can be achieved. And on platforms where `std::restart_lifetime` is a no-op, there is essentially no performance penalty for the portable implementation.
+With the addition of such easily generated wrapper code, efficient and ergonomic access from Rust can be achieved. Furthermore, on platforms where `std::restart_lifetime` is a no-op, there is no performance penalty.
 
-= `restart_lifetime`
-
-We propose a `restart_lifetime` function that fits within the
-`start_lifetime_as` series of functions. It allows us to separate the "memory
-copying" aspect of relocation from restarting the object's lifetime at the new
-memory address.
-
-Here is an implementation of `std::trivially_relocate` using `restart_lifetime`
-as a lower-level primitive.
-
-```Cpp
-template<class T>
-requires /* ... */
-T* trivially_relocate(T* first, T* last, T* result)
-{
-  std::memcpy( result,
-               first,
-               (last-first)*sizeof(T));
-  for(size_t i = 0; i < (last-first); ++i)
-    std::restart_lifetime(result[i]);
-}
-```
-
-This separation of concerns enables developers to copy an object's value representation
-to a new location by any means and then use it from the new location after a
-call to `std::restart_lifetime`. This enables all the usecases highlighted in
-@sec-usecases.
-
-Here is an example of using `std::restart_lifetime` to roundtrip a `Foo` object
-from main memory to GPU memory.
-
-```Cpp
-void * host_buffer = /*...*/
-void * device_buffer = /*...*/
-
-// Create a `Foo` object in host memory
-Foo* x = new (host_buffer)[sizeof(Foo)];
-
-// Move it to CUDA memory
-cudaMemcpy( device_buffer,
-            host_buffer,
-            sizeof(Foo),
-            cudaMemcpyHostToDevice );
-
-// ... reuse host_buffer for other purposes
-
-// Move it back to host memory
-cudaMemcpy( host_buffer,
-            device_buffer,
-            sizeof(Foo),
-            cudaMemcpyDevicetoHost );
-
-// Restart the object's lifetime on the host
-x = std::restart_lifetime<Foo>(host_buffer);
-
-// ... continue using *x
-```
 
 = Implementation
 
@@ -421,8 +425,8 @@ _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
 
 The rationale was that on ARM64e, the `origin` pointer could be used to validate
 the vtable pointers in the new location before re-signing them. This design,
-however, is significantly more complicated than the proposed alternative and is
-considered overly tailored to ARM64e.
+however, is significantly more complicated than our proposal and is considered
+overly tailored to ARM64e.
 
 == Extension for inter-process communication
 
@@ -454,7 +458,7 @@ serialization.
 
 == Names
 
-Another name we considered is `start_lifetime_at` due to its similarty to the
+Another name we considered was `start_lifetime_at` due to its similarty to the
 `start_lifetime_as` function group. The authors do not have strong preferences
 between `start_lifetime_at` and `restart_lifetime`.
 
