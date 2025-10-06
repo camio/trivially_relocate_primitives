@@ -45,52 +45,33 @@
       #table(
         columns: (1fr,1fr),
         stroke: none,
-        table.header[*Before*][*After*],
+        table.cell(colspan: 2)[*Context*],
+        table.hline(),
+        table.cell(colspan: 2)[
+        ```Cpp
+        // A trivially relocatable, but not trivially copyable, type.
+        class Foo { /*...*/ };
+
+        // Create a foo sequence with a single element using Microsoft's specialized mimalloc allocator.
+        void* foo_sequence_buffer = mi_malloc_aligned(sizeof(Foo), alignof(Foo));
+        Foo* foo_sequence = new (foo_sequence_buffer) Foo();
+
+        // Extend the sequence reusing the same memory if possible
+        foo_sequence_buffer = mi_realloc_aligned(foo_sequence, sizeof(Foo)*2, alignof(Foo));
+        new (foo_sequence_buffer+sizeof(Foo)) Foo();
+        foo_sequence = (Foo*)foo_sequence_buffer;
+        ```
+        ],
+        table.cell(colspan: 2)[],
+        [*Before*],[*After*],
         table.hline(),
         [
         ```Cpp
-        // A trivially relocatable, but not trivially
-        // copyable, type.
-        class Foo { /*...*/ };
-
-        // Create a foo sequence with a single element using
-        // Microsoft's specialized mimalloc allocator.
-        void* foo_sequence_buffer =
-          mi_malloc_aligned(sizeof(Foo), alignof(Foo));
-        Foo* foo_sequence = new (foo_sequence_buffer) Foo();
-
-        // Extend the sequence reusing the same memory if
-        // possible
-        foo_sequence_buffer = mi_realloc_aligned(
-          foo_sequence, sizeof(Foo)*2, alignof(Foo));
-        new (foo_sequence_buffer+sizeof(Foo)) Foo();
-        foo_sequence = (Foo*)foo_sequence_buffer;
-
-
-
-
         foo_sequence[0].bar(); // Undefined behavior
         ```
         ],
         [
         ```Cpp
-
-
-
-
-
-
-
-
-
-        // ...same as before...
-
-
-
-
-
-
-
         // Restart lifetime of relocated elements
         std::restart_lifetime(foo_sequence[0]);
 
