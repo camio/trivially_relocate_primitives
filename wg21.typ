@@ -66,7 +66,8 @@
     set page(
       paper: "us-letter",
       margin: (top: 1.9cm, bottom: 1in, x: 1.6cm),
-      columns: 2
+      columns: 2,
+      numbering: "1"
     )
     set par(justify: true)
     set text(10pt, font: "TeX Gyre Pagella")
