@@ -282,7 +282,7 @@ To do so, we first observe that `Shape` and `Circle` are trivially relocatable a
 #[repr(C)]
 #[repr(align(CIRCLE_ALIGNMENT))]
 struct Circle {
-    data: Cell<[MaybeUninit<u8>; CIRCLE_SIZE]>,
+    data: UnsafeCell<[MaybeUninit<u8>; CIRCLE_SIZE]>,
 }
 ```
 
