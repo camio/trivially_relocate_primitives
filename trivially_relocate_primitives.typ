@@ -146,7 +146,7 @@ the ARM64e platform, other important use cases remain unaddressed. We propose to
 complement `std::trivially_relocate` with another function,
 `std::restart_lifetime`, that addresses these use cases.
 
-= Key `std::trivially_relocate` limitations <sec-usecases>
+= Key `std::trivially_relocate` limitations <sec-use-cases>
 
 == `realloc` use case
 
@@ -177,7 +177,7 @@ sufficient library primitives for _trivially relocatable_ types.
 == Specialized `memcpy` use case
 
 A tuned memory copy operation can produce a 10% speedup over `std::memcpy`, and
-heterogenious memory systems require an alternative#footnote[See "Going faster
+heterogeneous memory systems require an alternative#footnote[See "Going faster
 than memcpy"@FastMemCpy and CUDA's `cudaMemcpy`@CudaMemCpy for some notable
 examples.]. `std::trivially_relocate`'s coupling of the physical moving of an
 object with restarting its lifetime makes it is impossible to portably take
@@ -214,8 +214,8 @@ T* trivially_relocate(T* first, T* last, T* result)
 
 This separation of concerns allows developers to copy an object's value representation
 to a new location by any means and then use it from the new location after a
-call to `std::restart_lifetime`. This enables all the usecases highlighted in
-@sec-usecases.
+call to `std::restart_lifetime`. This enables all the use-cases highlighted in
+@sec-use-cases.
 
 Here is an example of using `std::restart_lifetime` to roundtrip a `Foo` object
 from main memory to GPU memory.
@@ -374,9 +374,9 @@ a _complete_ trivial relocatability solution in C++26.
 == Is this critical for C++26?
 
 Whether or not this feature is considered a bug fix, it can be argued that it is
-critical this functionality be shipped in C++26 due to the urgency of memory
+critical that this functionality be shipped in C++26 due to the urgency of memory
 safety initiatives. The ability to call existing C++ code ergonomically from
-Rust is a critical to the memory safety roadmaps of many major corporations.
+Rust is a critical part of the memory safety roadmaps of many major corporations.
 Delaying this functionality by three years may force undesirable choices like
 depending on non-portable undefined behavior for interop or a strong push to
 rewrite existing C++ code that works just fine.
@@ -458,7 +458,7 @@ serialization.
 
 == Names
 
-Another name we considered was `start_lifetime_at` due to its similarty to the
+Another name we considered was `start_lifetime_at` due to its similarity to the
 `start_lifetime_as` function group. The authors do not have strong preferences
 between `start_lifetime_at` and `restart_lifetime`.
 
