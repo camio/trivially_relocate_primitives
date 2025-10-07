@@ -1,9 +1,9 @@
 #import "wg21.typ" as wg21
 
 #show: wg21.template.with(
-  paper_number: "P3858R0",
+  paper_number: "D3858R1",
   audience: "LEWG",
-  title: [A Lifetime-Management Primitive for Trivially Relocatable Types],
+  title: [A Lifetime-Management Primitive for Trivially Relocatable Types [DRAFT]],
   authors: (
     (
       name: "David Sankel",
@@ -73,7 +73,7 @@
         [
         ```Cpp
         // Restart lifetime of relocated elements
-        std::restart_lifetime(foo_sequence[0]);
+        std::restart_lifetime<Foo>(foo_sequence[0]);
 
         foo_sequence[0].bar(); // Okay
         ```
@@ -204,11 +204,12 @@ template<class T>
 requires /* ... */
 T* trivially_relocate(T* first, T* last, T* result)
 {
-  std::memcpy( result,
-               first,
-               (last-first)*sizeof(T));
+  memcpy( result,
+          first,
+          (last-first)*sizeof(T));
   for(size_t i = 0; i < (last-first); ++i)
-    std::restart_lifetime(result[i]);
+    restart_lifetime<T>(result[i]);
+  return result + (last - first);
 }
 ```
 
@@ -509,7 +510,7 @@ cost, we believe this proposal should be considered for C++26.
 = Acknowledgments
 
 We would like to thank Oliver Hunt for his review from an ARM64e security
-perspective, Jens Maurer for wording assistance, and the P2786 authors for
-valuable feedback.
+perspective, Jens Maurer for wording assistance, the P2786 authors for
+valuable feedback, and Jacob Lifshay for minor fixes.
 
 #bibliography("references.yml", style: "ieee")
