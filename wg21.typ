@@ -72,7 +72,12 @@
     set par(justify: true)
     set text(10pt, font: "TeX Gyre Pagella")
     set list(indent: 8pt)
-    show raw: set text( font: "Monaco" )
+
+    // Use JetBrains Mono with ligatures disabled. See
+    // https://github.com/JetBrains/JetBrainsMono/wiki/OpenType-features
+    // for a list of all this Font's features.
+    show raw: set text( font: "JetBrains Mono", features: ("calt": 0) )
+
     // show link: set text(underline: false)
     show heading: set text(size: 11pt)
     show heading.where(level: 1): set text(font: "TeX Gyre Heros", fill: rgb("004b71"), size: 12pt)
