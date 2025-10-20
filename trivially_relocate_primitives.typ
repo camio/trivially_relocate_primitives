@@ -31,7 +31,7 @@
       mechanisms for the identification and tagging of types whose objects can
       be "trivially" relocated from one memory address to another, as well as
       standard library functions that perform this relocation. A call to
-      `std::trivial_relocate` performs a logically atomic operation whereby an
+      `std::trivially_relocate` performs a logically atomic operation whereby an
       object's representation is copied, its lifetime is ended at the original
       location, and its lifetime is restarted at the target location, without
       invoking any constructors or destructors. Useful as they are, these
@@ -54,12 +54,12 @@
 
         // Create a foo sequence with a single element using Microsoft's specialized mimalloc allocator.
         void* foo_sequence_buffer = mi_malloc_aligned(sizeof(Foo), alignof(Foo));
-        Foo* foo_sequence = new (foo_sequence_buffer) Foo();
+        Foo* foo_sequence = ::new (foo_sequence_buffer) Foo();
 
         // Extend the sequence reusing the same memory if possible
-        foo_sequence_buffer = mi_realloc_aligned(foo_sequence, sizeof(Foo)*2, alignof(Foo));
-        new (foo_sequence_buffer+sizeof(Foo)) Foo();
+        foo_sequence_buffer = mi_realloc_aligned(foo_sequence_buffer, sizeof(Foo)*2, alignof(Foo));
         foo_sequence = (Foo*)foo_sequence_buffer;
+        ::new (&foo_sequence[1]) Foo();
         ```
         ],
         table.cell(colspan: 2)[],
@@ -117,14 +117,14 @@ void f() {
 
   // Relocating using std::memcpy results in
   // undefined behavior.
-  Foo* x1 = new (x1_buffer) Foo();
+  Foo* x1 = ::new (x1_buffer) Foo();
   std::memcpy(&y1_buffer, x1, sizeof(Foo));
   Foo* y1 = reinterpret_cast<Foo*>(y1_buffer);
   y1->bar(); // Undefined behavior
 
   // Relocating using std::trivially_relocate
   // works as expected.
-  Foo* x2 = new (x2_buffer) Foo();
+  Foo* x2 = ::new (x2_buffer) Foo();
   Foo* y2 = std::trivially_relocate(
     x2,
     x2+1,
@@ -201,7 +201,6 @@ as a lower-level primitive.
 
 ```Cpp
 template<class T>
-requires /* ... */
 T* trivially_relocate(T* first, T* last, T* result)
 {
   memcpy( result,
@@ -226,7 +225,7 @@ void * host_buffer = /*...*/
 void * device_buffer = /*...*/
 
 // Create a `Foo` object in host memory
-Foo* x = new (host_buffer)[sizeof(Foo)];
+Foo* x = ::new (host_buffer) Foo;
 
 // Move it to CUDA memory
 cudaMemcpy( device_buffer,
@@ -314,7 +313,7 @@ These C functions are implemented as follows:
 
 ```Cpp
 void c_create(void* result, void* radius) {
-    new (result) Circle(
+    ::new (result) Circle(
       *static_cast<float*>(radius));
 }
 
@@ -414,11 +413,11 @@ _Preconditions_:
 - [`p`, `(char*)p + sizeof(T)`) denotes a region of allocated storage that
   is a subset of the region of storage reachable through [basic.compound] `p`
   and suitably aligned for the type `T`.
-- The contents of [`p`, `(char*)p + sizeof(T)`) is the value representation of
+- The contents of [`p`, `(char*)p + sizeof(T)`) is the object representation of
   an object `a` that was stored at `origin`.
 
-_Effects_: Implicitly creates an object _b_ within the denoted region of type
-`T` whose address is `p`, whose lifetime has begun, and whose object
+_Effects_: Implicitly creates an object _b_ within the denoted region
+whose type is `T`, whose address is `p`, whose lifetime has begun, and whose value
 representation is the same as that of _a_.
 
 _Returns_: A pointer to the _b_ defined in the _Effects_ paragraph.
@@ -482,11 +481,11 @@ _Preconditions_:
 - [`p`, `(char*)p + sizeof(T)`) denotes a region of allocated storage that
   is a subset of the region of storage reachable through [basic.compound] `p`
   and suitably aligned for the type `T`.
-- The contents of [`p`, `(char*)p + sizeof(T)`) is the value representation of
+- The contents of [`p`, `(char*)p + sizeof(T)`) is the object representation of
   an object _a_ that was stored at another address.
 
-_Effects_: Implicitly creates an object _b_ within the denoted region of type
-`T` whose address is `p`, whose lifetime has begun, and whose object
+_Effects_: Implicitly creates an object _b_ within the denoted region
+whose type is `T`, whose address is `p`, whose lifetime has begun, and whose value
 representation is the same as that of _a_. If _a_ was still within its lifetime,
 its lifetime is ended.
 
@@ -511,6 +510,6 @@ cost, we believe this proposal should be considered for C++26.
 
 We would like to thank Oliver Hunt for his review from an ARM64e security
 perspective, Jens Maurer for wording assistance, the P2786 authors for
-valuable feedback, and Jacob Lifshay for minor fixes.
+valuable feedback, and Jacob Lifshay and Arthur O'Dwyer for minor fixes.
 
 #bibliography("references.yml", style: "ieee")
