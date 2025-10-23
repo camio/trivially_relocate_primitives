@@ -271,10 +271,10 @@ private:
 We'd like to interact with this API idiomatically within Rust:
 
 ```Rust
-let a = Circle::new(1.0);
+let mut a = Circle::new(1.0);
 let b = Circle::new(2.0);
 a = b;
-println("a's area: {}", a.area());
+println!("a's area: {}", a.area());
 ```
 
 To do so, we first observe that `Shape` and `Circle` are trivially relocatable and replaceable types. We denote the alignment of Circle as `CIRCLE_ALIGNMENT` and its size as `CIRCLE_SIZE`. Now we can define the Rust-side `Circle` type:
