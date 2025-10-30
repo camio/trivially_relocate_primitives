@@ -414,7 +414,7 @@ _Preconditions_:
   is a subset of the region of storage reachable through [basic.compound] `p`
   and suitably aligned for the type `T`.
 - The contents of [`p`, `(char*)p + sizeof(T)`) is the object representation of
-  an object `a` that was stored at `origin`.
+  an object _a_ of type `T` that was stored at `origin`.
 
 _Effects_: Implicitly creates an object _b_ within the denoted region
 whose type is `T`, whose address is `p`, whose lifetime has begun, and whose value
