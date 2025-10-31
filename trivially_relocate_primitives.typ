@@ -24,7 +24,7 @@
   date: (
     year: 2025,
     month: "October",
-    day: 6,
+    day: 31,
   ),
   abstract: [
       "Trivial Relocatability For C++ 26"@TrivialRelocatability introduced
