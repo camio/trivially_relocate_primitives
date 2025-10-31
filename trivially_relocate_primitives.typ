@@ -509,7 +509,8 @@ cost, we believe this proposal should be considered for C++26.
 = Acknowledgments
 
 We would like to thank Oliver Hunt for his review from an ARM64e security
-perspective, Jens Maurer for wording assistance, the P2786 authors for
-valuable feedback, and Jacob Lifshay and Arthur O'Dwyer for minor fixes.
+perspective, Jens Maurer for wording assistance, the P2786 authors and Jonathan
+Müller for valuable feedback, and Jacob Lifshay and Arthur O'Dwyer for minor
+fixes.
 
 #bibliography("references.yml", style: "ieee")
