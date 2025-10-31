@@ -395,6 +395,17 @@ We disagree with this assertion. `std::trivially_relocate` has legitimate use
 cases, one being a replacement for similar operations provided by existing
 library relocation solutions.
 
+== Application to Type-Erasure#footnote[Originally raised by Arthur O'Dwyer in @ArthurThoughts]
+
+Currently, it is impossible to implement a type-erased wrapper that is trivially
+relocatable when its wrapped type is also known to be trivially relocatable.
+`std::restart_lifetime` makes this possible.
+
+The implementation strategy is to ensure `std::restart_lifetime` is called prior
+to every wrapped operation. In the case of a `std::move_only_function`, for
+example, the opaque function called as part of its call operator will simply
+call `std::restart_lifetime<T>` prior to calling `T::operator()`.
+
 = Alternatives considered
 
 == Pass in origin pointer

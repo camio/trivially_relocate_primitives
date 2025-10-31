@@ -183,3 +183,11 @@ RoComment:
   author: "Romania"
   url: "https://github.com/cplusplus/nbballot/issues/713"
   accessed: "2025-10-31"
+
+ArthurThoughts:
+  type: web
+  title: "Thoughts on P3858R0 `restart_lifetime<T>`"
+  author: "Arthur O'Dwyer"
+  website: "Arthur O'Dwyer: Stuff mostly about C++"
+  url: "https://quuxplusone.github.io/blog/2025/10/18/thoughts-on-p3858r0/"
+  accessed: "2025-10-02"
