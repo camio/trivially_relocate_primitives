@@ -347,14 +347,12 @@ https://github.com/llvm/llvm-project/pull/144420 for a work in progress].
 
 == Will this undermine ARM64e security guarantees?
 
-Prior drafts of this proposal suggested implementations that indiscriminately
-sign existing vtable pointers without a priori verifying their validity. This
-resulted in a Return-Oriented Programming (ROP) Gadget exploitable by hackers
-using buffer overruns.
-
-The current proposal avoids this attack by overwriting the vtable pointers to
-their correct values, thus eliminating the possibility that an attacker could
-set them to arbitrary memory locations.
+An ARM643 `std::trivially_relocate` implementation that indiscriminately signs
+existing vtable pointers without a priori verifying their validity results in a
+Return-Oriented Programming (ROP) Gadget exploitable by hackers using buffer
+overruns. We avoid this attack by overwriting the vtable pointers to their
+correct values, thus eliminating the possibility that an attacker could set them
+to arbitrary memory locations.
 
 == Why is this being brought up now (and not earlier)?
 
