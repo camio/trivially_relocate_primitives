@@ -142,8 +142,9 @@ platform#footnote[This is a memory safety vulnerability mitigation. See
 perform "fixups" on these vtable pointers.
 
 While `std::trivially_relocate` suffices for many use cases and neatly handles
-the ARM64e platform, other important use cases remain unaddressed. We propose to
-complement `std::trivially_relocate` with another function,
+the ARM64e platform, other important use cases remain unaddressed#footnote[See
+national body comments RO 1-134 @RoComment and US 74-135 @UsComment]. We propose
+to complement `std::trivially_relocate` with another function,
 `std::restart_lifetime`, that addresses these use cases.
 
 = Key `std::trivially_relocate` limitations <sec-use-cases>

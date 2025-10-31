@@ -169,3 +169,17 @@ TcMalloc:
   website: "tcmalloc GitHub repository"
   url: "https://github.com/google/tcmalloc"
   accessed: "2025-10-03"
+
+UsComment:
+  type: web
+  title: "US 74-135 20.2.6 [obj.lifetime] Add a start_lifetime_at function"
+  author: "United States"
+  url: "https://github.com/cplusplus/nbballot/issues/714"
+  accessed: "2025-10-31"
+
+RoComment:
+  type: web
+  title: "RO 1-134 20.2.6 [obj.lifetime] Add a start_lifetime_at function P3858 "
+  author: "Romania"
+  url: "https://github.com/cplusplus/nbballot/issues/713"
+  accessed: "2025-10-31"
