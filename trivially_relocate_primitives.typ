@@ -1,9 +1,9 @@
 #import "wg21.typ" as wg21
 
 #show: wg21.template.with(
-  paper_number: "D3858R1",
+  paper_number: "P3858R1",
   audience: "LEWG",
-  title: [A Lifetime-Management Primitive for Trivially Relocatable Types [DRAFT]],
+  title: [A Lifetime-Management Primitive for Trivially Relocatable Types],
   authors: (
     (
       name: "David Sankel",
