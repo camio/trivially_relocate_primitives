@@ -83,6 +83,14 @@
 )
 #pagebreak()
 
+= History
+
+- *P3858R1*. Added _Application to Type-Erasure_ section. Clarified that
+   redundant `std::restart_lifetime` calls are supported. Fixed several code,
+   wording, and prose issues. Added more acknowledgments. Added references to
+   related national body comments.
+- *P3858R0*. Initial version.
+
 = Introduction
 
 It is a common yet unspecified property that for many types, an object can be
