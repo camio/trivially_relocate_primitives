@@ -438,7 +438,7 @@ _Preconditions_:
   and suitably aligned for the type `T`.
 - The contents of [`p`, `(char*)p + sizeof(T)`) is the object representation of
   an object _a_ of type `T` that was stored at `origin`.
-- _a_ is not a potentially-overlapping subobject.
+- _a_ was not a potentially-overlapping subobject.
 
 _Effects_: Implicitly creates an object _b_ within the denoted region
 whose type is `T`, whose address is `p`, whose lifetime has begun, and whose value
@@ -507,7 +507,7 @@ _Preconditions_:
   and suitably aligned for the type `T`.
 - The contents of [`p`, `(char*)p + sizeof(T)`) is the object representation of
   a previously existing object _a_ of type `T`.
-- _a_ is not a potentially-overlapping subobject.
+- _a_ was not a potentially-overlapping subobject.
 
 _Effects_: Implicitly creates an object _b_ within the denoted region
 whose type is `T`, whose address is `p`, whose lifetime has begun, and whose value
