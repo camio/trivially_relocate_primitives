@@ -402,9 +402,9 @@ relocatable when its wrapped type is also known to be trivially relocatable.
 `std::restart_lifetime` makes this possible.
 
 The implementation strategy is to ensure `std::restart_lifetime` is called prior
-to every wrapped operation. In the case of a `std::move_only_function`, for
-example, the opaque function called as part of its call operator will simply
-call `std::restart_lifetime<T>` prior to calling `T::operator()`.
+to every wrapped operation. In the case of a `std::move_only_function` wrapping
+a type `T`, for example, the opaque function called as part of its call operator
+will simply call `std::restart_lifetime<T>` prior to calling `T::operator()`.
 
 = Alternatives considered
 
