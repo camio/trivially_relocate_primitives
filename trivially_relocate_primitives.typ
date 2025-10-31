@@ -248,6 +248,11 @@ x = std::restart_lifetime<Foo>(host_buffer);
 // ... continue using *x
 ```
 
+`std::restart_lifetime` may also be safely called multiple times on the same
+address. This simplifies operations like `realloc`, as one can unconditionally
+call `std::restart_lifetime` on the returned pointer without tracking if it is the
+same as the original.
+
 == Addressing Rust-interop
 
 Since `std::trivially_relocate` can be decomposed into a bitwise copy followed by `std::restart_lifetime`, and it's only necessary to make sure that the latter occurs before accessing the potentially authenticated C++ vtable pointers, there is an opportunity to lazily perform fixups on the C++ side. For example, say we have a polymorphic class hierarchy implemented in C++:
