@@ -75,7 +75,7 @@ PointerAuthentication:
 TrivialRelocatability:
   type: report
   author:
-    - Alisdair Meredit
+    - Alisdair Meredith
     - Mungo Gill
     - Joshua Berne
     - Corentin Jabot
@@ -92,15 +92,9 @@ TrivialRelocatability:
 TrivialRelocatabilityAlt:
   type: report
   author:
-    - Arthur O'Dwyer
-    - Artur Bać
-    - Daniel Liam Anderson
-    - Enrico Mauro
-    - Jody Hagins
-    - Michael Steffens
-    - Stéphane Janel
-    - Vinnie Falco
-    - Walter E. Brown
+    - Arthur O'Dwyer, Artur Bać, Daniel Liam Anderson
+    - Enrico Mauro, Jody Hagins, Michael Steffens
+    - Stéphane Janel, Vinnie Falco, Walter E. Brown
     - Will Wray
   title: "`std::is_trivially_relocatable`"
   number: "P1144R13"
